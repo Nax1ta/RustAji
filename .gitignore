@@ -1,0 +1,15 @@
+**/bin/
+**/obj/
+publish/
+verification-data/
+*.user
+*.suo
+.vs/
+.idea/
+.vscode/
+*.pdb
+*.tmp
+*.bak
+*.tlb
+library.json
+errors.log
