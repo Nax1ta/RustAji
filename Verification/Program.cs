@@ -28,6 +28,13 @@ Check(WelcomeLibrary.Ensure(welcomeStore), "first launch creates example library
 var welcome = welcomeStore.Load();
 Check(welcome.Folders.Count == 4 && welcome.Items.Count == 6 && welcome.Items.All(x => welcomeStore.ImagePath(x.ImageFile) is not null), "offline illustrated lessons and folders");
 Check(!WelcomeLibrary.Ensure(welcomeStore) && welcomeStore.Load().Items.Count == 6, "existing library is never reseeded");
+using (var firstLaunchWindow = new MainForm(welcomeStore, true))
+{
+    var intro = welcome.Folders.Single(x => x.Name == "从这里开始");
+    Check(Descendants(firstLaunchWindow).OfType<TreeView>().First().SelectedNode?.Tag is Guid selected && selected == intro.Id &&
+        Descendants(firstLaunchWindow).OfType<ListView>().First().SelectedItems.Count == 1,
+        "first launch opens the first illustrated lesson");
+}
 var first = new DataStore(Path.Combine(root, "first"));
 var data = new LibraryData();
 var mathFolder = new LibraryFolder { Name = "数学" };
