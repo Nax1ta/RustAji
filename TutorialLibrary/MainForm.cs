@@ -120,7 +120,7 @@ public sealed class MainForm : Form
         settingsMenu.DropDownItems.Add("资料位置", null, (_, _) => OpenDataLocation());
         menu.Items.Add(settingsMenu);
         var help = new ToolStripMenuItem("关于");
-        help.Click += (_, _) => MessageBox.Show(this, "RustAji 腐味 1.0.1\n\n资料保存在：\n" + store.Folder + "\n\n建议定期使用“备份 → 导出完整备份”。", "关于", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        help.Click += (_, _) => MessageBox.Show(this, "RustAji 腐味 1.1.0\n\n资料保存在：\n" + store.Folder + "\n\n建议定期使用“备份 → 导出完整备份”。", "关于", MessageBoxButtons.OK, MessageBoxIcon.Information);
         menu.Items.Add(help);
         foreach (ToolStripItem item in menu.Items)
         {

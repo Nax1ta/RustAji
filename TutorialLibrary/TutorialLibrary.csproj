@@ -8,7 +8,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <ApplicationIcon>Assets\avatar.ico</ApplicationIcon>
     <AssemblyName>RustAji</AssemblyName>
-    <Version>1.0.1</Version>
+    <Version>1.1.0</Version>
     <Authors>教程资料收藏夹</Authors>
     <PublishSingleFile>true</PublishSingleFile>
     <SelfContained>true</SelfContained>

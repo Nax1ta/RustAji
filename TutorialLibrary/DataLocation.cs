@@ -10,9 +10,44 @@ public static class DataLocation
     public static string DefaultFolder => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), AppFolderName);
     public static string LegacyDefaultFolder => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "腐味");
 
-    public static string Read() => ReadFromRoots(
+    public static string Read() => ReadInstalledFromRoots(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData));
+
+    public static string ReadInstalledFromRoots(string localRoot, string roamingRoot)
+    {
+        string current = ReadFromRoots(localRoot, roamingRoot);
+        string configFolder = Path.Combine(roamingRoot, AppFolderName);
+        string request = Path.Combine(configFolder, "install-location.txt");
+        if (!File.Exists(request)) return current;
+
+        string selected = File.ReadAllText(request).Trim().TrimStart('\uFEFF');
+        if (!Path.IsPathFullyQualified(selected)) throw new InvalidDataException("安装时选择的资料路径无效。");
+        selected = Path.GetFullPath(selected);
+        string previous = Path.GetFullPath(current);
+        if (selected.Equals(previous, StringComparison.OrdinalIgnoreCase))
+        {
+            File.Delete(request);
+            return current;
+        }
+        if (selected.StartsWith(previous + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase) ||
+            previous.StartsWith(selected + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
+            throw new InvalidOperationException("资料目录不能是原资料目录的上级或下级。");
+        if (File.Exists(Path.Combine(selected, "library.json")))
+        {
+            // Selecting an existing library means opening it, not replacing its contents.
+            WriteConfig(Path.Combine(configFolder, "location.json"), selected);
+            File.Delete(request);
+            return selected;
+        }
+        if (Directory.Exists(selected) && Directory.EnumerateFileSystemEntries(selected).Any())
+            throw new IOException("安装时选择的资料目录不是空目录，也不是已有的 RustAji 资料库。");
+        if (File.Exists(Path.Combine(current, "library.json"))) CopyLegacyLibrary(current, selected);
+        else Directory.CreateDirectory(selected);
+        WriteConfig(Path.Combine(configFolder, "location.json"), selected);
+        File.Delete(request);
+        return selected;
+    }
 
     // Separate roots let migration be checked without touching a user's real library.
     public static string ReadFromRoots(string localRoot, string roamingRoot)

@@ -8,7 +8,7 @@ RustAji 是一款 Windows 本地网址收藏夹。资料可按文件夹整理，
 
 ## 下载
 
-[Releases](https://github.com/Nax1ta/RustAji/releases) 提供 Windows x64 可执行文件。目前没有 macOS 或 Linux 版本。
+[Releases](https://github.com/Nax1ta/RustAji/releases) 提供 Windows x64 安装包。安装时可分别选择程序目录和资料目录；再次安装会沿用已有资料位置。安装包会建立开始菜单入口和卸载项。此前的单文件版本仍可在旧版发布页下载。目前没有 macOS 或 Linux 版本。
 
 首次启动会建立一组可编辑的示例资料，介绍文件夹、标签、封面和备份功能。另有[文字版使用说明](docs/GETTING_STARTED.md)。
 
@@ -20,7 +20,7 @@ RustAji 是一款 Windows 本地网址收藏夹。资料可按文件夹整理，
 
 ## 文件存放位置
 
-默认资料目录为 `%LOCALAPPDATA%\RustAji\`，位置配置保存在 `%APPDATA%\RustAji\`。“设置 → 资料位置”可更改资料目录。
+安装时未更改资料位置，默认目录为 `%LOCALAPPDATA%\RustAji\`；位置配置保存在 `%APPDATA%\RustAji\`。“设置 → 资料位置”可在安装后更改目录。卸载程序只移除程序文件和快捷方式，不删除资料库。
 
 从旧版升级到 1.0.1 时，程序会将 `%LOCALAPPDATA%\腐味\` 中的资料复制到新目录。旧版自动建立的“腐味资料”目录会复制到同一父目录下的 `RustAjiLibrary`。原目录保留；手动选择的其他资料目录不变。迁移或导入前可通过“备份”菜单导出 `.tlb` 文件。
 
@@ -30,9 +30,9 @@ RustAji 是一款 Windows 本地网址收藏夹。资料可按文件夹整理，
 
 ```powershell
 dotnet run --project Verification/Verification.csproj -c Release
-dotnet publish TutorialLibrary/TutorialLibrary.csproj -c Release -o publish
+./build-installer.ps1
 ```
 
-生成文件为 `publish/RustAji.exe`。验证程序使用仓库内的临时资料。
+构建脚本先生成 `publish/RustAji.exe`，再用 NSIS 生成安装包；需要预先安装 NSIS 3。验证程序使用仓库内的临时资料。
 
 源代码采用 [GNU GPL v2](LICENSE)。头像插画的使用范围见 [ASSETS.md](ASSETS.md)。开发约定见 [CONTRIBUTING.md](CONTRIBUTING.md)，后续计划见[路线图](docs/ROADMAP.md)。

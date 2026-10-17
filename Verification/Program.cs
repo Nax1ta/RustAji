@@ -54,6 +54,28 @@ Directory.CreateDirectory(Path.GetDirectoryName(chosenConfig)!);
 File.WriteAllText(chosenConfig, JsonSerializer.Serialize(new { dataFolder = chosenPath }));
 Check(DataLocation.ReadFromRoots(Path.Combine(root, "chosen-local"), chosenRoaming) == chosenPath &&
     File.Exists(Path.Combine(chosenRoaming, "RustAji", "location.json")), "user chosen path stays in place while config moves to English path");
+string installerLocal = Path.Combine(root, "installer-local");
+string installerRoaming = Path.Combine(root, "installer-roaming");
+string installedDefault = Path.Combine(installerLocal, "RustAji");
+new DataStore(installedDefault).Save(oldPathData);
+string requestedFolder = Path.Combine(root, "installed-library");
+string requestFile = Path.Combine(installerRoaming, "RustAji", "install-location.txt");
+Directory.CreateDirectory(Path.GetDirectoryName(requestFile)!);
+File.WriteAllText(requestFile, requestedFolder);
+Check(DataLocation.ReadInstalledFromRoots(installerLocal, installerRoaming) == requestedFolder &&
+    new DataStore(requestedFolder).Load().Items.Count == oldPathData.Items.Count &&
+    File.Exists(Path.Combine(installedDefault, "library.json")) && !File.Exists(requestFile),
+    "installer location request copies existing data and retains original");
+Check(DataLocation.ReadInstalledFromRoots(installerLocal, installerRoaming) == requestedFolder,
+    "installer location request is applied once");
+string freshLocal = Path.Combine(root, "fresh-local");
+string freshRoaming = Path.Combine(root, "fresh-roaming");
+string freshRequest = Path.Combine(freshRoaming, "RustAji", "install-location.txt");
+string freshDestination = Path.Combine(root, "fresh-data");
+Directory.CreateDirectory(Path.GetDirectoryName(freshRequest)!);
+File.WriteAllText(freshRequest, freshDestination + "\r\n", Encoding.Unicode);
+Check(DataLocation.ReadInstalledFromRoots(freshLocal, freshRoaming) == freshDestination &&
+    Directory.Exists(freshDestination) && !File.Exists(freshRequest), "fresh installer location initializes empty library folder");
 var welcomeStore = new DataStore(Path.Combine(root, "welcome"));
 Check(WelcomeLibrary.Ensure(welcomeStore), "first launch creates example library");
 var welcome = welcomeStore.Load();
