@@ -4,29 +4,96 @@ namespace TutorialLibrary;
 
 public static class DataLocation
 {
-    static string ConfigFolder => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "腐味");
+    const string AppFolderName = "RustAji";
+    static string ConfigFolder => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), AppFolderName);
     static string ConfigFile => Path.Combine(ConfigFolder, "location.json");
-    public static string DefaultFolder => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "腐味");
+    public static string DefaultFolder => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), AppFolderName);
+    public static string LegacyDefaultFolder => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "腐味");
 
-    public static string Read()
+    public static string Read() => ReadFromRoots(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData));
+
+    // Separate roots let migration be checked without touching a user's real library.
+    public static string ReadFromRoots(string localRoot, string roamingRoot)
     {
-        if (!File.Exists(ConfigFile)) return DefaultFolder;
-        using var document = JsonDocument.Parse(File.ReadAllText(ConfigFile));
-        string folder = document.RootElement.GetProperty("dataFolder").GetString() ?? throw new InvalidDataException("资料位置设置为空。 ");
+        string currentDefault = Path.Combine(localRoot, AppFolderName);
+        string oldDefault = Path.Combine(localRoot, "腐味");
+        string currentConfig = Path.Combine(roamingRoot, AppFolderName, "location.json");
+        string oldConfig = Path.Combine(roamingRoot, "腐味", "location.json");
+        bool fromLegacyConfig = !File.Exists(currentConfig) && File.Exists(oldConfig);
+        string? configured = File.Exists(currentConfig) ? ReadConfig(currentConfig) : fromLegacyConfig ? ReadConfig(oldConfig) : null;
+
+        if (configured is not null)
+        {
+            string oldLibrary = Path.GetFullPath(oldDefault);
+            if (Path.GetFullPath(configured).Equals(oldLibrary, StringComparison.OrdinalIgnoreCase))
+            {
+                if (!File.Exists(Path.Combine(currentDefault, "library.json"))) CopyLegacyLibrary(oldDefault, currentDefault);
+                WriteConfig(currentConfig, currentDefault);
+                return currentDefault;
+            }
+            if (fromLegacyConfig && Path.GetFileName(Path.TrimEndingDirectorySeparator(configured)).Equals("腐味资料", StringComparison.OrdinalIgnoreCase))
+            {
+                string replacement = Path.Combine(Path.GetDirectoryName(Path.TrimEndingDirectorySeparator(configured))!, "RustAjiLibrary");
+                if (!File.Exists(Path.Combine(replacement, "library.json"))) CopyLegacyLibrary(configured, replacement);
+                WriteConfig(currentConfig, replacement);
+                return replacement;
+            }
+            string existing = RequireLibrary(configured);
+            if (fromLegacyConfig) WriteConfig(currentConfig, existing);
+            return existing;
+        }
+        if (File.Exists(Path.Combine(oldDefault, "library.json")) && !File.Exists(Path.Combine(currentDefault, "library.json")))
+            CopyLegacyLibrary(oldDefault, currentDefault);
+        return currentDefault;
+    }
+
+    static string ReadConfig(string configFile)
+    {
+        using var document = JsonDocument.Parse(File.ReadAllText(configFile));
+        return document.RootElement.GetProperty("dataFolder").GetString() ?? throw new InvalidDataException("资料位置设置为空。 ");
+    }
+
+    static string RequireLibrary(string folder)
+    {
         if (!Path.IsPathFullyQualified(folder)) throw new InvalidDataException("资料位置必须是完整路径。 ");
         if (!Directory.Exists(folder) || !File.Exists(Path.Combine(folder, "library.json")))
             throw new DirectoryNotFoundException("资料目录无法访问。请连接保存资料的磁盘或同步盘：" + folder);
         return Path.GetFullPath(folder);
     }
 
+    static void CopyLegacyLibrary(string source, string destination)
+    {
+        if (!File.Exists(Path.Combine(source, "library.json"))) throw new FileNotFoundException("旧资料目录缺少 library.json。", source);
+        if (File.Exists(Path.Combine(destination, "library.json"))) return;
+        Directory.CreateDirectory(destination);
+        foreach (string subfolder in new[] { "images", "assets" })
+        {
+            string from = Path.Combine(source, subfolder), to = Path.Combine(destination, subfolder);
+            Directory.CreateDirectory(to);
+            if (!Directory.Exists(from)) continue;
+            foreach (string file in Directory.EnumerateFiles(from, "*", SearchOption.TopDirectoryOnly))
+                File.Copy(file, Path.Combine(to, Path.GetFileName(file)), true);
+        }
+        string oldBackup = Path.Combine(source, "library.json.bak");
+        if (File.Exists(oldBackup)) File.Copy(oldBackup, Path.Combine(destination, "library.json.bak"), true);
+        string temp = Path.Combine(destination, "library.json.tmp");
+        File.Copy(Path.Combine(source, "library.json"), temp, true);
+        File.Move(temp, Path.Combine(destination, "library.json"), true);
+    }
+
     public static void Save(string folder)
     {
-        folder = Path.GetFullPath(folder);
-        if (!File.Exists(Path.Combine(folder, "library.json"))) throw new InvalidDataException("目标目录没有腐味资料文件。 ");
-        Directory.CreateDirectory(ConfigFolder);
-        string temp = ConfigFile + ".tmp";
+        WriteConfig(ConfigFile, RequireLibrary(folder));
+    }
+
+    static void WriteConfig(string configFile, string folder)
+    {
+        Directory.CreateDirectory(Path.GetDirectoryName(configFile)!);
+        string temp = configFile + ".tmp";
         File.WriteAllText(temp, JsonSerializer.Serialize(new { dataFolder = folder }));
-        File.Move(temp, ConfigFile, true);
+        File.Move(temp, configFile, true);
     }
 
     public static string Migrate(DataStore source, LibraryData data, string destination)
@@ -42,7 +109,7 @@ public static class DataLocation
         source.Save(data);
         string parent = Path.GetDirectoryName(destination)!;
         Directory.CreateDirectory(parent);
-        string staging = Path.Combine(parent, ".腐味迁移-" + Guid.NewGuid().ToString("N"));
+        string staging = Path.Combine(parent, ".rustaji-migrate-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(staging);
         try
         {
@@ -100,7 +167,7 @@ public sealed class DataLocationForm : Form
         {
             using var picker = new FolderBrowserDialog { Description = "选择新资料目录的父文件夹", UseDescriptionForTitle = true };
             if (picker.ShowDialog(this) != DialogResult.OK) return;
-            Destination = Path.Combine(picker.SelectedPath, "腐味资料");
+            Destination = Path.Combine(picker.SelectedPath, "RustAjiLibrary");
             Choice = DataLocationChoice.Migrate;
             DialogResult = DialogResult.OK;
         };

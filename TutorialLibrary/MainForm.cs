@@ -68,7 +68,7 @@ public sealed class MainForm : Form
 
     public MainForm(DataStore? testStore = null, bool showWelcome = false)
     {
-        store = testStore ?? new DataStore(DataLocation.Read(), Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "腐味"));
+        store = testStore ?? new DataStore(DataLocation.Read(), DataLocation.LegacyDefaultFolder);
         data = store.Load();
         Text = "腐味 · RustAji";
         Width = 1190;
@@ -120,7 +120,7 @@ public sealed class MainForm : Form
         settingsMenu.DropDownItems.Add("资料位置", null, (_, _) => OpenDataLocation());
         menu.Items.Add(settingsMenu);
         var help = new ToolStripMenuItem("关于");
-        help.Click += (_, _) => MessageBox.Show(this, "RustAji 腐味 1.0\n\n资料保存在：\n" + store.Folder + "\n\n建议定期使用“备份 → 导出完整备份”。", "关于", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        help.Click += (_, _) => MessageBox.Show(this, "RustAji 腐味 1.0.1\n\n资料保存在：\n" + store.Folder + "\n\n建议定期使用“备份 → 导出完整备份”。", "关于", MessageBoxButtons.OK, MessageBoxIcon.Information);
         menu.Items.Add(help);
         foreach (ToolStripItem item in menu.Items)
         {
@@ -1257,7 +1257,7 @@ public sealed class MainForm : Form
 
     void ExportBackup()
     {
-        using var dialog = new SaveFileDialog { Title = "导出完整备份", Filter = "腐味备份|*.tlb", FileName = "腐味-" + DateTime.Now.ToString("yyyy-MM-dd") + ".tlb", OverwritePrompt = true };
+        using var dialog = new SaveFileDialog { Title = "导出完整备份", Filter = "RustAji 备份|*.tlb", FileName = "RustAji-" + DateTime.Now.ToString("yyyy-MM-dd") + ".tlb", OverwritePrompt = true };
         if (dialog.ShowDialog(this) != DialogResult.OK) return;
         try { store.ExportBackup(data, dialog.FileName); statusText.Text = "完整备份已导出。"; }
         catch (Exception error) { ShowOperationError("导出备份", error); }

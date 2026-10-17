@@ -74,7 +74,7 @@ public sealed class DataStore
     public DataStore(string? folder = null, string? legacyFolder = null)
     {
         string localData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-        Folder = folder ?? Path.Combine(localData, "腐味");
+        Folder = folder ?? Path.Combine(localData, "RustAji");
         Directory.CreateDirectory(Folder);
         Directory.CreateDirectory(ImageFolder);
         Directory.CreateDirectory(AssetFolder);

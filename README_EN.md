@@ -1,26 +1,30 @@
-# RustAji · 腐味
+# RustAji (腐味)
 
-**A local home for links, videos, and the notes that make them worth keeping.**
+[简体中文](README.md) · English
 
-RustAji is an open-source desktop bookmark organizer for courses, art references, articles, and long-running projects. Arrange links in folders, add tags and your own notes, save cover images, and find things again with search and filters.
+A URL alone may not tell you why you saved it. RustAji keeps the link with your notes, tags, and a cover image. You can put courses, videos, and articles into folders and search them later.
 
-> **Platform status:** Version 1.0 runs on Windows x64 and is built with .NET 10 WinForms. macOS and Linux builds do not exist yet. RustAji is a name, not a claim that this app is written in Rust.
+![The tutorial inside the app](docs/images/welcome.png)
 
-## Get started
+## Download
 
-Download `RustAji-1.0-windows-x64.exe` from GitHub Releases. On a fresh installation, the app creates an editable illustrated tutorial. Open the “从这里开始” folder and select “01 认识腐味”.
+Get the latest Windows x64 build from [Releases](https://github.com/Nax1ta/RustAji/releases). Version 1.0.1 is a .NET 10 WinForms app. There are no macOS or Linux builds yet. RustAji is the app's name; the code is not written in Rust.
 
-![First-run tutorial](docs/images/welcome.png)
+On first launch, open the “从这里开始” folder and select “01 认识腐味”. The example entries walk through the interface with pictures and notes. You can edit or delete them.
 
-The tutorial covers saving a link, moving items between folders, tags, cover images, and backups. You can edit or delete every example.
+## Using it
 
-## What works offline
+Right-click a folder or an empty part of the list to add a bookmark. Add a URL and a note you will understand later. You can nest folders, drag entries between them, attach tags, search, and filter the list. Covers can come from a web page or from an image on your computer.
 
-Your records, notes, saved covers, folders, tags, and search are local and work without an account. Opening external links or fetching website cover images requires internet access. This release has no built-in cloud sync or browser extension.
+Your saved entries, notes, and images remain available offline. Opening a URL or fetching a web cover needs an internet connection. There is no account or built-in cloud sync. To move the library to another Windows computer, export a `.tlb` file from the Backup menu and import it there.
 
-Data is stored in `%LOCALAPPDATA%\腐味\` by default; you can change the location in Settings. Export a `.tlb` backup to move the complete library, including used images and settings, to another Windows computer.
+## Data location
 
-## Build
+The default folder is `%LOCALAPPDATA%\RustAji\`. On first run, version 1.0.1 copies data from the older `%LOCALAPPDATA%\腐味\` folder if present; it leaves the old folder in place. A folder named “腐味资料” that an earlier version created is copied to a sibling named `RustAjiLibrary`. Other locations you chose yourself are left alone.
+
+You can change the location under Settings. Export a `.tlb` backup before moving or importing a library.
+
+## Build and license
 
 On Windows with the .NET 10 SDK:
 
@@ -29,6 +33,6 @@ dotnet run --project Verification/Verification.csproj -c Release
 dotnet publish TutorialLibrary/TutorialLibrary.csproj -c Release -o publish
 ```
 
-The executable will be `publish/RustAji.exe`. The verification program uses temporary data under the repository and does not read your personal library.
+The executable is `publish/RustAji.exe`. The verification program uses temporary data inside the repository, not your personal library.
 
-Read the [Chinese getting started guide](docs/GETTING_STARTED.md), [roadmap](docs/ROADMAP.md), and [contribution guide](CONTRIBUTING.md). Source code is licensed under [GNU GPL v2](LICENSE). The original avatar artwork has separate rights; see [ASSETS.md](ASSETS.md).
+Source code is licensed under [GNU GPL v2](LICENSE). See [ASSETS.md](ASSETS.md) for the avatar artwork, [CONTRIBUTING.md](CONTRIBUTING.md) for contributions, and the [roadmap](docs/ROADMAP.md) for possible next steps.

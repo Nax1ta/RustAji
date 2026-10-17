@@ -46,7 +46,7 @@ static class Program
     {
         try
         {
-            var folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "腐味");
+            var folder = DataLocation.DefaultFolder;
             Directory.CreateDirectory(folder);
             File.AppendAllText(Path.Combine(folder, "errors.log"), $"[{DateTimeOffset.Now:O}] {exception}\n");
         }

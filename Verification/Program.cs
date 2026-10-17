@@ -23,6 +23,37 @@ Application.EnableVisualStyles();
 Application.SetCompatibleTextRenderingDefault(false);
 Application.SetUnhandledExceptionMode(UnhandledExceptionMode.ThrowException);
 string root = Path.Combine(Environment.CurrentDirectory, "verification-data", Guid.NewGuid().ToString("N"));
+string migrationLocal = Path.Combine(root, "path-migration", "local");
+string migrationRoaming = Path.Combine(root, "path-migration", "roaming");
+var oldPathStore = new DataStore(Path.Combine(migrationLocal, "腐味"));
+var oldPathData = new LibraryData();
+oldPathData.Folders.Add(new LibraryFolder { Name = "保留的文件夹" });
+oldPathData.Items.Add(new StudyItem { FolderId = oldPathData.Folders[0].Id, Title = "保留的资料", ImageFile = oldPathStore.SaveImage(Path.Combine(Environment.CurrentDirectory, "Assets", "avatar.png")) });
+oldPathData.Settings.AccentColor = "#778899";
+oldPathStore.Save(oldPathData);
+string migratedPath = DataLocation.ReadFromRoots(migrationLocal, migrationRoaming);
+var migratedData = new DataStore(migratedPath).Load();
+Check(Path.GetFileName(migratedPath) == "RustAji" && migratedData.Items.Single().Title == "保留的资料" && migratedData.Settings.AccentColor == "#778899" &&
+    new DataStore(migratedPath).ImagePath(migratedData.Items[0].ImageFile) is not null, "Chinese default path copies records images and settings to RustAji");
+Check(oldPathStore.Load().Items.Count == 1 && DataLocation.ReadFromRoots(migrationLocal, migrationRoaming) == migratedPath, "path migration keeps the original and is repeatable");
+string oldCustom = Path.Combine(root, "custom-data", "腐味资料");
+var oldCustomStore = new DataStore(oldCustom);
+oldPathData.Items[0].ImageFile = oldCustomStore.SaveImage(Path.Combine(Environment.CurrentDirectory, "Assets", "avatar.png"));
+oldCustomStore.Save(oldPathData);
+string oldConfig = Path.Combine(migrationRoaming, "腐味", "location.json");
+Directory.CreateDirectory(Path.GetDirectoryName(oldConfig)!);
+File.WriteAllText(oldConfig, JsonSerializer.Serialize(new { dataFolder = oldCustom }));
+string newCustom = DataLocation.ReadFromRoots(Path.Combine(root, "custom-local"), migrationRoaming);
+Check(Path.GetFileName(newCustom) == "RustAjiLibrary" && new DataStore(newCustom).Load().Items.Count == 1 &&
+    File.Exists(Path.Combine(migrationRoaming, "RustAji", "location.json")), "generated custom path and location config migrate to English names");
+string chosenPath = Path.Combine(root, "chosen-library");
+new DataStore(chosenPath).Save(oldPathData);
+string chosenRoaming = Path.Combine(root, "chosen-config");
+string chosenConfig = Path.Combine(chosenRoaming, "腐味", "location.json");
+Directory.CreateDirectory(Path.GetDirectoryName(chosenConfig)!);
+File.WriteAllText(chosenConfig, JsonSerializer.Serialize(new { dataFolder = chosenPath }));
+Check(DataLocation.ReadFromRoots(Path.Combine(root, "chosen-local"), chosenRoaming) == chosenPath &&
+    File.Exists(Path.Combine(chosenRoaming, "RustAji", "location.json")), "user chosen path stays in place while config moves to English path");
 var welcomeStore = new DataStore(Path.Combine(root, "welcome"));
 Check(WelcomeLibrary.Ensure(welcomeStore), "first launch creates example library");
 var welcome = welcomeStore.Load();
@@ -186,7 +217,8 @@ Check(twitter?.ToString() == "https://images.example.com/a.jpg", "Twitter cover 
 Check(ThumbnailService.GetYouTubeThumbnailUrl(new Uri("https://www.youtube.com/watch?v=l_jfyIEddfw"))?.ToString() == "https://i.ytimg.com/vi/l_jfyIEddfw/hqdefault.jpg", "YouTube watch thumbnail URL");
 Check(ThumbnailService.GetYouTubeThumbnailUrl(new Uri("https://youtu.be/l_jfyIEddfw?t=42")) is not null && ThumbnailService.GetYouTubeThumbnailUrl(new Uri("https://www.youtube.com/shorts/l_jfyIEddfw")) is not null, "YouTube short and shorts URLs");
 Check(ThumbnailService.GetYouTubeThumbnailUrl(new Uri("https://www.youtube.com.evil.example/watch?v=l_jfyIEddfw")) is null, "reject imitation YouTube host");
-CheckCoverDownloadAsync(Path.Combine(Environment.CurrentDirectory, "Assets", "avatar.png")).GetAwaiter().GetResult();
+if (!args.Contains("--offline"))
+    CheckCoverDownloadAsync(Path.Combine(Environment.CurrentDirectory, "Assets", "avatar.png")).GetAwaiter().GetResult();
 if (args.Contains("--youtube"))
 {
     byte[]? youtubeCover = ThumbnailService.FindCoverAsync("https://www.youtube.com/watch?v=l_jfyIEddfw").GetAwaiter().GetResult();

@@ -1,6 +1,8 @@
 **/bin/
 **/obj/
 publish/
+.dotnet-home/
+.nuget-packages/
 verification-data/
 *.user
 *.suo
