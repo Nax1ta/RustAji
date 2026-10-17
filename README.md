@@ -46,4 +46,4 @@ dotnet publish TutorialLibrary/TutorialLibrary.csproj -c Release -o publish
 
 当前优先解决的是：个人收藏散落在浏览器、聊天记录和笔记中，后来很难按自己的学习脉络找回。我们先把 Windows 版的资料整理、检索、备份做好，再评估跨平台界面。计划见 [路线图](docs/ROADMAP.md)。欢迎提交问题与改进建议，贡献方式见 [CONTRIBUTING.md](CONTRIBUTING.md)。
 
-源代码采用 [MIT License](LICENSE)。原始头像插画由项目作者保留权利，见 [ASSETS.md](ASSETS.md)。
+源代码采用 [GNU GPL v2](LICENSE)。原始头像插画由项目作者保留权利，见 [ASSETS.md](ASSETS.md)。

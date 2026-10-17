@@ -31,4 +31,4 @@ dotnet publish TutorialLibrary/TutorialLibrary.csproj -c Release -o publish
 
 The executable will be `publish/RustAji.exe`. The verification program uses temporary data under the repository and does not read your personal library.
 
-Read the [Chinese getting started guide](docs/GETTING_STARTED.md), [roadmap](docs/ROADMAP.md), and [contribution guide](CONTRIBUTING.md). Source code is [MIT licensed](LICENSE). The original avatar artwork has separate rights; see [ASSETS.md](ASSETS.md).
+Read the [Chinese getting started guide](docs/GETTING_STARTED.md), [roadmap](docs/ROADMAP.md), and [contribution guide](CONTRIBUTING.md). Source code is licensed under [GNU GPL v2](LICENSE). The original avatar artwork has separate rights; see [ASSETS.md](ASSETS.md).
